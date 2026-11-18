@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>dsh-breeze-tts · Breeze 语音</title>
+  <meta name="description" content="DSH 语音插件：让 AI 回复自动念出来，还能用文字造声音、用录音克隆声音。自备 Breeze TTS 服务，本机可 call。">
+  <link rel="icon" href="icon.png">
+  <link rel="alternate" type="text/plain" href="llms.txt" title="AI 读者说明">
+  <link rel="alternate" type="application/json" href="site.json" title="机器可读项目清单">
+  <style>
+    body{max-width:820px;margin:0 auto;padding:48px 24px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.75;color:#1f2328;background:#fff}
+    header{text-align:center;margin-bottom:40px} header img{width:96px;height:96px}
+    h1{font-size:2rem;margin:12px 0 4px} .tagline{color:#57606a;font-size:1.05rem}
+    .badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+    .badges code{background:#f6f8fa;border:1px solid #d0d7de;border-radius:6px;padding:2px 8px;font-size:.85rem}
+    h2{margin-top:36px;border-bottom:1px solid #d8dee4;padding-bottom:6px}
+    .card{background:#f6f8fa;border:1px solid #d0d7de;border-radius:8px;padding:16px 20px;margin:16px 0}
+    footer{margin-top:48px;color:#57606a;font-size:.85rem;text-align:center}
+    a{color:#0969da}
+  </style>
+</head>
+<body>
+<header>
+  <img src="assets/brand/icon-breeze-512.png" alt="Breeze 语音波纹标">
+  <h1>dsh-breeze-tts · Breeze 语音</h1>
+  <p class="tagline">让 AI 开口念，还能帮你造出想要的声音。</p>
+  <div class="badges"><code>MIT</code><code>DSH 插件</code><code>自备 Breeze 服务</code><code>仅本机可 call</code></div>
+</header>
+<h2>它能做什么</h2>
+<div class="card">两个入口：<strong>Breeze 设置</strong>（AI 回复自动朗读、选音色、调语速）与 <strong>Breeze 音色工坊</strong>（文字造声音／录音克隆／管理音色）。插件本身是客户端，不含语音模型——连你自己跑的 Breeze TTS 服务发声。</div>
+<h2>它不做什么</h2>
+<p>不随包分发任何 Breeze 模型权重（非商业许可）；不主动外发管理 token；不提供自动更新面板（更新走插件市场）。运行时权重许可与本插件 MIT 许可相互独立。</p>
+<h2>开始使用</h2>
+<p>先看 <a href="HARDWARE.md">硬件要求</a>（确认机器跑哪档），再按 <a href="使用说明.md">使用说明</a> 装服务与插件。详见 <a href="README.md">README</a>、<a href="README.en.md">English</a>、<a href="README-AI.md">AI 说明</a>。</p>
+<h2>给 AI / 机器</h2>
+<p><a href="SKILL.md">SKILL.md</a> · <a href="llms.txt">llms.txt</a> · <a href="site.json">site.json</a> — 最短正确路径、事实边界与机器可读清单。</p>
+<h2>许可与来源</h2>
+<p>见 <a href="LICENSE">LICENSE</a>（MIT，含上游版权声明）、<a href="NOTICE.md">NOTICE</a> / <a href="NOTICE.en.md">NOTICE.en</a>、<a href="CHANGELOG.md">CHANGELOG</a>。运行时 Breeze 模型权重为非商业许可，分发或商用前请读 NOTICE。</p>
+<footer>「老秦 Family」（OldQin Family）作品 · v1.3.0</footer>
+</body>
+</html>

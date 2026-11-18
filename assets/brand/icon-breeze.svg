@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Breeze 语音 · 一口气化作一段声纹。
+       同 bell.svg 家族：viewBox 512、currentColor 扁平线描、圆角端点、fill:none 为主，
+       仅顶部引导气流弧线用 accent 点睛；声纹竖条 currentColor。 -->
+  <!-- 引导气流弧（赭红点睛）：一口气从左侧送入，越过声纹顶点 -->
+  <path d="M56 226 Q120 176 220 168 Q300 162 372 196"
+        stroke="#A0432A" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <!-- 声纹竖条：由左到右渐高再渐低，形成波形包络 -->
+  <g stroke="currentColor" stroke-width="22" stroke-linecap="round">
+    <line x1="112" y1="236" x2="112" y2="280"/>
+    <line x1="152" y1="222" x2="152" y2="298"/>
+    <line x1="192" y1="206" x2="192" y2="318"/>
+    <line x1="232" y1="196" x2="232" y2="330"/>
+    <line x1="272" y1="206" x2="272" y2="318"/>
+    <line x1="312" y1="220" x2="312" y2="302"/>
+    <line x1="352" y1="238" x2="352" y2="284"/>
+  </g>
+</svg>

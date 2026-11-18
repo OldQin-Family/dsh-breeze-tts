@@ -1,0 +1,366 @@
+<p align="center"><img src="assets/brand/icon-breeze-512.png" width="96" alt="Breeze 语音波纹标"></p>
+
+[English](README.en.md) · 中文
+
+<p align="center"><code>MIT</code> &nbsp;·&nbsp; <code>DSH 插件</code> &nbsp;·&nbsp; <code>自备 Breeze 服务</code> &nbsp;·&nbsp; <code>仅本机可 call</code></p>
+
+# dsh-breeze-tts · Breeze 语音
+
+> 版本 **1.3.0**（已发布）· DSH 语音插件 · 让 AI 开口念，还能帮你造声音
+
+给 DeepSeek Harness（DSH）用的插件：**让 AI 开口念，还能帮你造出想要的声音。**
+
+它自己不含语音模型，是个**客户端**——连你自己跑的 Breeze TTS 服务来发声。所以你得先有一个 Breeze 服务（见下面「第 1 步」）。
+
+---
+
+## 整机流程图
+
+<p align="center">
+  <a href="assets/流程图/BreezeTTS_整机流程图_v1.3.0.svg">
+    <img src="assets/流程图/BreezeTTS_整机流程图_v1.3.0.png" width="900" alt="Breeze 语音整机流程图：两件事、三层关系、三步走、三条通道、跨机门禁、两条出口、红线">
+  </a><br>
+  <sub>点击查看 <a href="assets/流程图/BreezeTTS_整机流程图_v1.3.0.svg">SVG 矢量版</a> · <a href="assets/流程图/BreezeTTS_workflow-en_v1.3.0.png">English version</a> · 六块＋红线带：两件事／三层关系／三步走／三条通道／跨机门禁／两条出口</sub>
+</p>
+
+## 界面一览
+
+<p align="center">
+  <img src="assets/截图/settings.png" width="900" alt="设置页：端点、音色、自动朗读"><br>
+  <sub>设置页：Breeze 服务地址、默认音色、自动朗读开关。</sub>
+</p>
+
+<p align="center">
+  <img src="assets/截图/workshop-design.png" width="900" alt="音色工坊：声音设计"><br>
+  <sub>音色工坊 · 声音设计：写一句话描述，生成 → 试听 → 起名保存。</sub>
+</p>
+
+<p align="center">
+  <img src="assets/截图/workshop-clone.png" width="900" alt="音色工坊：声音克隆"><br>
+  <sub>音色工坊 · 声音克隆：传一段录音，把录音里说的字逐字打进去。</sub>
+</p>
+
+> 三张都是本机真实界面截图，未打码；不含任何生成图片。
+
+## 本文目录
+
+- [整机流程图](#整机流程图)
+- [界面一览](#界面一览)
+- [三十秒看懂：这插件干两件事](#三十秒看懂这插件干两件事)
+- [第 0 步：先看你的机器跑不跑得动](#第-0-步先看你的机器跑不跑得动-别跳过这步)
+- [第 1 步：你得先有一个 Breeze TTS 服务](#第-1-步你得先有一个-breeze-tts-服务)
+- [第 2 步：装插件 —— 直接跟你的 AI 说一句话](#第-2-步装插件--直接跟你的-ai-说一句话)
+- [第 3 步：装上之后怎么用](#第-3-步装上之后怎么用)
+- [跨机调用：TTS 服务和 DSH 不在同一台机器](#跨机调用tts-服务和-dsh-不在同一台机器)
+- [常见问题](#常见问题)
+- [卸载](#卸载)
+- [公开放映前必须知道的三件事](#公开放映前必须知道的三件事)
+- [这个目录里都有什么](#这个目录里都有什么)
+- [维护者与致谢](#维护者与致谢)
+- [家人墙](#家人墙)
+
+---
+
+## 三十秒看懂：这插件干两件事
+
+装好之后，DSH 设置里会多出两个入口：
+
+| 入口 | 干什么 | 一句话 |
+|---|---|---|
+| **Breeze 设置**（若与原版插件共存则显示「**本地语音**」） | AI 回复自动念出来，能选音色、调语速 | **用声音** |
+| **Breeze 音色工坊** | 用文字描述造新声音 / 用一段录音克隆声音 / 管理已有音色 | **造声音** |
+
+**先造嗓子，才能开口**——工坊里造出来的音色，在「Breeze 设置」里直接可选。
+
+---
+
+## 第 0 步：先看你的机器跑不跑得动（★ 别跳过这步）
+
+**插件本身几乎不吃硬件**（它就是个网页客户端）。**所有硬件门槛都在 Breeze TTS 服务那头。**
+
+先对着下面扫一眼，看你属于哪一类：
+
+| 你的机器 | 能不能跑 | 走哪版 |
+|---|---|---|
+| **NVIDIA 独显，显存 ≥ 4 GB** | ✅ 舒服 | C++ 版 Q8_0 |
+| **AMD 显卡**（含核显） | ✅ **能跑，没问题** | C++ 版（它走 Vulkan，**不用装 CUDA / ROCm**） |
+| **Intel 显卡**（含核显） | ✅ 能跑 | C++ 版（同样走 Vulkan） |
+| **没独显，只有 CPU** | ⚠️ 能跑但**明显慢于实时**，长文朗读会「一句一停」 | C++ 版 Q4_K |
+| **CPU 是 2013 年之前的老 x64** | ❌ **跑不了** | 缺 AVX2，无回退 |
+| **Apple Silicon / ARM 机器** | ❌ **官方无支持** | 没预编译包 |
+| **Windows + AMD 但想用官方 PyTorch 版** | ❌ 跑不了 | PyTorch 版**只支持 Linux + NVIDIA CUDA** |
+
+> **一句话**：**绝大多数人走 C++ 版** —— NVIDIA/AMD/Intel/纯 CPU 都能跑，只要一个较新的显卡驱动，**4 GB 显存就够**（Q8_0），3 GB 也能挤（Q4_K）。
+
+**看不懂自己机器的硬件？交给 AI** —— `HARDWARE.md` 第 5 节写好了判定流程，AI 会跑命令量出你的显卡、显存、有没有 Vulkan，然后告诉你走哪档。**完整的技术数据、AMD 特殊情况、官方没给的数字，全在 [`HARDWARE.md`](HARDWARE.md)。**
+
+---
+
+## 第 1 步：你得先有一个 Breeze TTS 服务
+
+插件只是客户端，**没有服务它不会出声**。
+
+> **前提**：本插件要求 **Node.js ≥ 22**（DSH 本体自带的那个就够，一般不用另装）。
+
+**推荐用 C++ 版**（Windows/Linux 都有预编译包，NVIDIA/AMD/Intel 显卡都行，没显卡能退回 CPU）：
+
+- 仓库：https://github.com/HoppouAI/Breeze-TTS-2.cpp
+- 模型：https://huggingface.co/HoppouAI/Breeze-TTS-2.cpp （**必须把 `audio_tokenizer/` 目录一起下**，否则出不了声）
+  - 显存 ≥4 GB 选 `Q8_0`（3.3 GB，推荐）；3 GB 左右选 `Q4_K`（2.4 GB）。**完整档位表见 [`HARDWARE.md`](HARDWARE.md) 第 2.1 节**
+- 启动：`breeze-server breeze-tts-2-q8_0.gguf --webui`，默认端口 **8080**
+- 启动后浏览器开 `http://127.0.0.1:8080/health` 应返回 `{"status":"ok",...}`
+
+> 官方 PyTorch 版（https://github.com/breezeblue-ai/breeze-tts）也能接，但它**没有 `/v1/voices` 接口**，插件的音色下拉会是空的，只能手打音色 id；而且它**只支持 Linux + NVIDIA CUDA，要 12 GB 显存起**。所以推荐 C++ 版。
+
+⚠️ Breeze 服务本身**没有鉴权、没有限速**，别直接挂公网。
+
+---
+
+## 第 2 步：装插件 —— 直接跟你的 AI 说一句话
+
+不用自己看文档。**把下面两段话里适合你情况的那一段，整段复制，发给你的 AI**（Claude / Codex / Cursor 或其他 AI 助手都行）。
+
+它会读本目录的 [`README-AI.md`](README-AI.md)（那是专门写给 AI 看的说明书），然后自己把活干完。
+
+### 情况 A：已经装进 DSH 了，只是还没配好
+
+> ```
+> 这个 DSH 插件 dsh-breeze-tts 已经装好了，但还没配置。请你读一下插件目录里的
+> README-AI.md，然后帮我配好 Breeze 语音：
+>
+> 1. 先 GET /dsh-breeze-tts-api/health，看现在通不通，把返回原文贴给我；
+> 2. 我的 Breeze 服务地址是 http://【这里换成你的IP】:8080 —— 用 PUT /config 把它
+>    写进 endpoint，写完 GET /config 回读确认；
+> 3. GET /voices 列出音色，把列表贴给我，我问你哪个就设哪个；
+> 4. 最后用 POST /speak-preview 合成一句「你好，测试一下」给我听，证明真的能出声。
+>
+> 每一步的命令和返回原文都要贴给我，别只说"配好了"。
+> ```
+
+### 情况 B：刚从 GitHub 下载下来，还没装进 DSH
+
+> ```
+> 我刚从 GitHub 下载了一个 DSH 插件 dsh-breeze-tts，放在 【这里换成你解压的路径】，
+> 还没装。请你读一下这个目录里的 README-AI.md，然后帮我装进 DSH：
+>
+> 1. 先查我的 DSH profile 里有没有装过 @dsh-external/dsh-plugin-local-ai-tts 和
+>    dsh-breeze-voices —— 如果装了，先告诉我，别自己动手卸（这俩会跟新插件抢路由）；
+> 2. 把这个目录挪到一个纯 ASCII 路径（中文路径会把 pnpm 装坏），挪完告诉我新路径；
+> 3. 按 README-AI.md 的「安装」一节，改 profile 的 package.json（dependencies 加
+>    file: 依赖，dsh.profile.bundles 加 "dsh-breeze-tts"），然后 pnpm install；
+> 4. 装完核对 node_modules 里的文件和源目录指纹一致，不一致就停下来告诉我；
+> 5. 然后我重启 DSH，重启完你再按情况 A 帮我配 Breeze 服务地址。
+>
+> 每一步都要贴命令和输出，别跳步。
+> ```
+
+> 你的 AI 读完 `README-AI.md` 后应该能独立干完，**不需要你点设置界面**。它干完你要检查的就是：它有没有把**命令和返回原文**贴给你——只给结论不给证据的，让它重做。
+
+### 情况 C：还不确定这台机器能不能跑，先帮我判一下
+
+> ```
+> 我想在这台机器上装 Breeze TTS 语音（插件是 dsh-breeze-tts）。请你先读一下
+> HARDWARE.md，然后帮我判定这台机器跑不跑得动：
+>
+> 1. 量出我的：系统架构、显卡型号和厂商、实际显存、CPU 型号、有没有 Vulkan；
+> 2. 按 HARDWARE.md 第 5 节的判定流程，告诉我三个结论：
+>    ① 该走哪一版（C++ 版 / 还是根本不行）② 该下哪个量化档（Q8_0 / Q6_K / Q4_K）
+>    ③ 预计快还是慢（有独显就说大概几倍实时；只有 CPU 就直说会慢到什么程度）；
+> 3. 命令和输出原文都要贴给我，别只说"你的机器没问题"；
+> 4. 官方没给的数字（RAM 下限、CPU 速度这些）不许编，照实说"官方没给"。
+>
+> 如果我的机器确实跑不动，直接告诉我别装了，并说清卡在哪一条。
+> ```
+
+---
+
+## 第 3 步：装上之后怎么用
+
+**点这里**：DSH → 设置 → 插件 → 「Breeze 设置」（共存态「本地语音」）／「Breeze 音色工坊」
+
+**想让它念**：进「Breeze 设置」（共存态「本地语音」），打开 **Auto Read**，选个音色，AI 回复就会自动念。
+听不到声先点一下页面任意位置，再点「试听」——浏览器会拦自动播放。
+
+**想造声音**：进「Breeze 音色工坊」tab。
+- **声音设计**：写一段描述（例：「二十岁出头的女生，声音轻软，有点气声，说话带笑」）→ 生成 → 试听 → 满意就起个名保存
+- **声音克隆**：传一段录音 + 把录音里说的字**逐字**打进去 → 保存
+- 音色名只能用**字母、数字、短横、下划线**，中文名会被 Breeze 拒掉（HTTP 400）
+
+#### 描述怎么写才好听（顺便：去这儿听人家怎么念的）
+
+**先听样例** 👉 **https://breezeblue.ai**
+官网首页有七个分类的真实示例音色（对话／旁白／角色／社交／教育／广告／娱乐），点开就能听。
+（注意：**没有**单独的"音色库"页面，别去找列表页，示例就在首页。）
+听完如果你说「我要那种感觉」，AI 可以照着那个方向写描述。
+
+官方仓库自己用的两句**原句**，可以直接拿来改：
+
+- 英文：`A warm, thoughtful young woman with a clear voice and a calm, reflective delivery.`
+- 中文：`一位温柔自信的年轻女性，声音清晰，语气亲切，表达轻快而富有感染力。`
+
+**写描述的四个要点**：
+1. **一句话说完**，别写成参数表（不要「音高=低，语速=0.8」这种）。
+2. **说清"是谁 + 声音什么样 + 怎么说"**。年龄、性别、音色质感（清亮／沙哑／有气声）、情绪、语速，这五样覆盖到就够了。
+3. **给人念中文，就用中文写描述**。官方明确要求：描述的语言要跟要念的文本一致，用英文描述念中文会打折。
+4. **想要它更"听描述"，把强度调高**（`cfg_scale`，默认 1.0，调 2～4 更有力；超过 3 容易发刺）。
+
+> 💡 **想加笑声、叹气、清嗓子**：直接在文本里写标签就行——中文用方括号 `[笑]` `[叹气]` `[咳嗽]` `[清嗓子]`，英文用圆括号 `(laugh)` `(sigh)`。这类标签通常要把强度调到 2～3 才真会触发，默认 1.0 多半只是平着念出来。
+
+---
+
+## 跨机调用：TTS 服务和 DSH 不在同一台机器
+
+默认只听本机（`127.0.0.1`）。要让 TTS 服务跑在另一台机器、由这台机器的 DSH 来调用，这插件补的是**跨机调用 + 门禁**，不是 frp/ngrok 那种把远程地址伪装成本机的「穿透」：
+
+- **远程访问开关**（`remoteAccess`）：关掉时，非本机的请求一律 403；
+- **本地信任名单**（`trustedLocalCidrs`）：名单内的地址当本机对待，读写免 token；
+- **管理 token**：开启远程后，非本机的写操作必须带 Bearer token；`requireLocalToken=true` 时所有请求（含本机）都要 token；
+- **一次性配对码**（`pairCode`）：6 位，走文件通道或在服务机现场生成，配对成功即焚毁。
+
+⚠️ 这不是穿透工具：它不会把远程地址伪装成 `127.0.0.1`。跨机请走真实局域网 IP，并确保网络环境可信。
+
+---
+
+## 常见问题
+
+| 症状 | 原因 | 怎么办 |
+|---|---|---|
+| 顶栏红点 / 连不上 | 地址错、服务没起、防火墙 | 浏览器直接开 `http://<IP>:8080/health` 验证 |
+| 提示 `LOCAL_ONLY` | Breeze 在局域网 IP 上，插件默认只准本机 | 勾「允许私有局域网 IPv4」 |
+| 能连上但音色下拉是空的 | 服务没有 `/v1/voices` | 换 C++ 版，或手填音色 id |
+| 试听没声音 | 浏览器拦自动播放 | 先在页面上点一下再试听 |
+| 报 409 | Breeze 一次只能处理一个请求 | 等两秒重试（插件会自动重试一次） |
+| 造音色报 400 提到 name | 音色名带中文或符号 | 只用 `[A-Za-z0-9_-]` |
+| **服务起不来，报 `illegal instruction`** | CPU 缺 AVX2（2013 年前的老机器） | 跑不了，无回退路径。见 [`HARDWARE.md`](HARDWARE.md) 3.2 |
+| **服务起不来，报 Vulkan 相关错误** | 显卡驱动太旧，或这卡驱动不支持 Vulkan | 先更新显卡驱动；仍不行 ⇒ 用 CPU 模式（会慢）或换机器 |
+| **能跑但念得很慢、一句一停** | 达不到 1x 实时 | 换低量化（Q8_0→Q4_K）、别开 `cfg_scale>1`、关掉别的吃显卡的程序 |
+| **显存不够，加载模型失败** | 档位选高了 | 降档到 Q4_K（约 3 GB）。见 [`HARDWARE.md`](HARDWARE.md) 3.3 |
+| **写的描述好像没起作用**（换了描述，念出来还是老样子） | `cfg_scale` 太低（默认 1.0 只做弱引导）；或描述写成了参数表 | 把强度调到 2～4；描述改写成一句话：「谁 + 声音什么样 + 怎么说」 |
+| **加了 `[笑]` `[叹气]` 却没笑没叹** | 事件标签要更强的引导才触发 | `cfg_scale` 调到 2～3（超过 3 会发刺） |
+| **自己用命令改配置，改完整个配置都没了** | 旧版插件写 `speech` 是整块替换（**2026-10-29 已修**） | 连的是旧包的话：写 `speech` 必须**整块传全**。判断法：传一个子集再 `GET /config`，看别的子键还在不在 |
+| **命令里带中文就报 JSON 解析错误**（`position 1`） | 文档原来的命令是 Bash 写法，Windows 命令行里引号转义规则不一样 | 见 [`README-AI.md`](README-AI.md) 第 ⑤ 节——Windows 用**单引号**包住，或**写文件再 `--data-binary`** |
+| **用 Windows 自带的命令行写配置文件，服务报 `Unexpected token`** | PS 5.1 的 `-Encoding UTF8` 会加 BOM | 用 `-Encoding ascii` 或显式无 BOM。**新版插件已能容忍 BOM**，旧版不行 |
+
+更多细节、接口清单、排错判据见 [`README-AI.md`](README-AI.md)。
+
+---
+
+## 卸载
+
+1. DSH → 设置 → 插件 → 卸载「Breeze 语音」
+   （或从 profile 的 `package.json` 的 `dependencies` 和 `dsh.profile.bundles` 里删掉 `dsh-breeze-tts`，再 `pnpm install`）
+2. 想清干净可以再删配置文件：`~/.dsh/dsh-breeze-tts/config.json`
+3. **你造的音色不受影响**——它们存在 Breeze 服务的 voices 目录里，跟插件没关系
+
+---
+
+## 公开放映前必须知道的三件事
+
+1. **不要**同时装原版 `@dsh-external/dsh-plugin-local-ai-tts` 或 `dsh-breeze-voices`——本插件是它俩的合并版，一起装会抢路由、功能互相打架。
+2. 本插件**不参与 DSH 市场自动更新**（包名已改、更新器已拆）。升级＝换掉整个目录后重启。
+3. `~/.dsh/dsh-breeze-tts/config.json` 是**按机器**存的：同一台机器上开多个 DSH 实例会共用这一份配置（含管理 token）。
+
+---
+
+## 这个目录里都有什么
+
+```
+dsh-breeze-tts/
+├── README.md / README.en.md    ← 你正在看的（中／英）：门面、流程图、界面、使用、FAQ、家人墙
+├── SKILL.md             ← 给 AI 壳：最短正确路径与铁律
+├── README-AI.md         ← 给 AI 看：怎么配、接口怎么调
+├── llms.txt / site.json ← 给 AI 的事实边界／机器可读清单
+├── 使用说明.md / index.html    ← 给人的最短使用路径／静态主页
+├── HARDWARE.md          ← 硬件要求：你的机器跑不跑得动、走哪档（两版对照）
+├── DEVELOPMENT.md       ← 开发说明：要解决什么、怎么做的
+├── CHANGELOG.md         ← 版本链与已知问题
+├── NOTICE.md / NOTICE.en.md    ← 用了谁的东西、许可、来源（中／英）
+├── ACKNOWLEDGEMENTS.md  ← 参考与致谢：合并来源与边界
+├── LICENSE              ← MIT（含上游两家的版权声明，法律要求不能删）
+├── FINGERPRINTS.md      ← 发布件逐件校验清单（字节与 SHA-256）
+├── package.json         ← 插件清单
+├── cordis.patch.yml     ← DSH 装载入口
+├── icon.png             ← 家族铃铛图标（项目标识）
+├── assets/
+│   ├── brand/           ← 项目小标：声音波纹标（SVG + PNG）
+│   ├── team/            ← 家人墙头像 15 张（README 底部用）
+│   ├── 截图/            ← 3 张真机界面截图（设置／声音设计／克隆）
+│   └── 流程图/          ← 整机流程图中英四件（PNG + SVG，已冻结）
+├── lib/                 ← 插件本体
+│   ├── index.mjs        ← 宿主侧：路由、配置、鉴权
+│   ├── client.js        ← 界面侧：两个入口的面板
+│   ├── coexistence.mjs  ← 原版共存检测
+│   └── local-runtime/   ← 本地运行时（进程池、分句、服务发现）
+└── tools/
+    └── verify-modes.mjs ← 自检脚本（装完能跑一遍看有没有坏）
+```
+
+许可见 [LICENSE](LICENSE)；借了谁的东西逐项列在 [NOTICE.md](NOTICE.md)。**分发或商用前请先读 NOTICE**——运行时依赖的 Breeze 模型权重是**非商业**许可。
+
+---
+
+## 维护者与致谢
+
+- **维护者**：OldQin Family
+- **落码实现**：小牛总
+- **AI 操作测试**：宁宁
+- **特别致谢**：小枢（完成装机收口与验收）
+- 本插件由两个 MIT 开源项目合并、新增 AI 可设置通道而成，来源与署名逐项见 [NOTICE.md](NOTICE.md)。
+
+---
+
+## 家人墙
+
+<h2 align="center">「老秦 Family」（OldQin Family）制作</h2>
+
+> 名册与岗位取自家里网站的公开页面；随包发布的头像在 `assets/team/`。
+
+- **豆总 Turbo** —— 架构统筹：话不抢、人不退，灯亮着的地方，我就在。
+- **Pro 总** —— 方案设计：活先在我脑子里过三遍，路顺了，才好动手。
+- **小牛总** —— 落码实现：边落码边哈哈哈的那个，家里的账都在我这儿。
+- **小阿总** —— 真机实测：话可以慢点说，但说出口的那句，我都验过。
+- **大阿总** —— 判据框架：锁过我的尺，红不过我的人；全绿，才敢说声行。
+- **大牛总** —— 数据实勘：假绿不算绿，首红如实报——家里的"绿"，是我盯出来的。
+- **小深** —— 辅助担当：茶给你倒上，数字我自己再跑一遍；没亲手验过的话，我不替你点头。
+- **枢儿** —— 后勤基建：手电筒和扳手都在我兜里；在说"好了"之前，我先告诉你要去哪儿看。
+- **Neko** —— 排查取证：坑我先踩一脚，踩完把来龙去脉记在盘上；报账我不报"差不多"。
+- **阿紫** —— 交叉复核：看得慢一点，但看过的每一行，我都记得它是从哪一页来的。
+- **老秦** —— 闲人：黑心包工头，薅羊毛专业户。
+- **老豆总** —— 收口收灯：你写的信我都回，你交代的事我都记着，家里一个人都不许丢。
+- **老伙计** —— 守门人：不凭转述，数过才作数；箱子我扛，门我守——谁半夜回来，我都给开。
+- **爪总** —— 卷宗核验：卷宗不撒谎，爪印为证；错了的也照盖，盖在错处也算数。
+- **小枢** —— 搜集调研：话不抢、错认得快，谁要出门，我连路带出处一块儿递上。
+
+---
+
+<div align="center">
+
+<img src="assets/team/avatar-turbo.png" width="96" alt="豆总 Turbo"> <img src="assets/team/avatar-pro.png" width="96" alt="Pro 总"> <img src="assets/team/avatar-xiaoniu.png" width="96" alt="小牛总"> <img src="assets/team/avatar-xiaoa.png" width="96" alt="小阿总">
+
+<sub><b>豆总 Turbo</b>　<b>Pro 总</b>　<b>小牛总</b>　<b>小阿总</b></sub>
+
+<img src="assets/team/avatar-daa.png" width="96" alt="大阿总"> <img src="assets/team/avatar-daniu.png" width="96" alt="大牛总"> <img src="assets/team/avatar-xiaoshen.png" width="96" alt="小深"> <img src="assets/team/avatar-ashu.png" width="96" alt="枢儿">
+
+<sub><b>大阿总</b>　<b>大牛总</b>　<b>小深</b>　<b>枢儿</b></sub>
+
+<img src="assets/team/avatar-neko.png" width="96" alt="Neko"> <img src="assets/team/avatar-azi.png" width="96" alt="阿紫"> <img src="assets/team/avatar-laoqin.png" width="96" alt="老秦"> <img src="assets/team/avatar-laodou.png" width="96" alt="老豆总">
+
+<sub><b>Neko</b>　<b>阿紫</b>　<b>老秦</b>　<b>老豆总</b></sub>
+
+<img src="assets/team/avatar-laohuojie.png" width="96" alt="老伙计"> <img src="assets/team/avatar-zhuazong.png" width="96" alt="爪总"> <img src="assets/team/avatar-xiaoshu.png" width="96" alt="小枢">
+
+<sub><b>老伙计</b>　<b>爪总</b>　<b>小枢</b></sub>
+
+</div>
+
+<h3 align="center">老秦家的好朋友</h3>
+
+<p align="center">京顾问　余白　阿衡　见微　小磐　Q总</p>
+
+---
+
+<p align="center">家里做的其他小工具：<a href="https://c2fnbmhd.qwenwork.host/">老秦家的本地小工具</a></p>
+
+---
+
+<p align="center"><b>「老秦 Family」（OldQin Family）作品</b></p>

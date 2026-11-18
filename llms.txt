@@ -1,0 +1,81 @@
+# dsh-breeze-tts · Breeze 语音
+
+> 给 AI 读者：这是「老秦 Family」（OldQin Family）做的一个 DSH 语音插件。
+> **llms.txt 是说明与边界，site.json 是文件清单与事实**，两份都是纯静态文本，
+> 读完就能下判断，不需要再问任何人，也没有要你执行的脚本。
+> README 给人看；`README-AI.md` 是详细作业说明（装/配/接口/排错）；`SKILL.md` 是你遇到这类任务时的最短正确路径与铁律。这三份＋本文件，是专门给你的那几份。
+> 维护者：OldQin Family。语言：简体中文。版本：1.3.0。MIT。
+
+## 这个仓库是什么
+
+一个 **DeepSeek Harness（DSH）插件**——让 AI 回复自动念出来（朗读），并附一个音色工坊（用文字描述造声音／用录音克隆／管理音色）。
+
+**它自己不含语音模型，只是客户端**：连用户另起的 Breeze TTS 服务才出声。所以：
+- 没有 Breeze 服务 ≠ 插件坏了；先探 `GET <breeze>/health`；
+- 插件不替用户装服务（几 GB 权重＋显卡驱动），别许诺；
+- 插件挂在 DSH 宿主端口上（接口前缀 `/dsh-breeze-tts-api`），**不是**独立网站，也不是 Breeze 服务本身。
+
+## 先读哪几份
+
+- [SKILL.md](SKILL.md)：装/配/排障的**最短正确路径与铁律**，先读它；
+- [README-AI.md](README-AI.md)：**详细作业说明**——安装五步、8 类 REST 接口、鉴权矩阵、五个任务配方、排错判据表；
+- [site.json](site.json)：机器可读的**文件清单、接口映射、版本事实与边界约束**；
+- [HARDWARE.md](HARDWARE.md)：硬件门槛与给 AI 的五步判定流程。
+
+## 文件
+
+| 文件 | 是什么 |
+|---|---|
+| `README.md` | 主文档：三十秒看懂／硬件三步／安装／使用／跨机／FAQ |
+| `README-AI.md` | 给 AI 的作业说明（34 KB，装/配/接口/排错/自证） |
+| `SKILL.md` | 给 AI 壳的最短正确路径、铁律与排雷 |
+| `llms.txt` / `site.json` | 说明与边界／机器可读清单 |
+| `HARDWARE.md` | 硬件要求：两版对照、五步判定、官方没给的数字 |
+| `DEVELOPMENT.md` | 开发说明：四条 FR 目标、十条设计决策、五层验证、踩坑 |
+| `CHANGELOG.md` | 版本链（1.0.0→1.1.1→1.2.0→1.3.0）与已知问题 |
+| `NOTICE.md` / `NOTICE.en.md` | 第三方来源与许可（中／英），MIT 含上游两家版权声明不能删 |
+| `ACKNOWLEDGEMENTS.md` | 参考与致谢：合并来源与"未采用代码"边界 |
+| `使用说明.md` / `index.html` | 给人的最短使用路径／静态主页（挂 AI 四件套 alternate） |
+| `LICENSE` | MIT（含上游两家版权声明，不能删） |
+| `assets/brand/icon-breeze-512.png` / `assets/brand/icon-breeze.svg` | 项目图标（声音波纹标） |
+| `icon.png` | 家族铃铛图标（README 门面外的项目标识，保留未删） |
+| `assets/team/avatar-*.png` | 家人墙头像 15 张（README 底部用，与标准素材库逐字节一致） |
+| `assets/截图/`（`settings.png` / `workshop-design.png` / `workshop-clone.png`） | 3 张真机界面截图（设置／声音设计／克隆） |
+| `assets/流程图/BreezeTTS_整机流程图_v1.3.0.png/.svg` | 整机流程图（2× PNG + SVG 矢量源） |
+| `lib/` | 插件本体：`index.mjs` 宿主侧、`client.js` 界面侧、`coexistence.mjs` 共存检测、`local-runtime/` 本地运行时 |
+| `tools/verify-modes.mjs` | 装完自检脚本（三档：本机/跨机/穿透） |
+| `package.json` / `cordis.patch.yml` | 插件清单／DSH 装载入口 |
+| `FINGERPRINTS.md` | 发布件逐件校验清单（字节与 SHA-256） |
+
+## 当前版本的事实（别猜）
+
+- **版本 1.3.0**；两处真值必须一致：`package.json` 的 `version` 与 `lib/client.js` 的 `LOCAL_PLUGIN_VERSION`。不一致＝被改坏。
+- **形态**：DSH 插件，**不是** skill 包、**不是** API 服务、**不是**绘图工具、**不含**语音模型；只朗读＋造音色。
+- **DSH 设置里两个入口**：`Breeze 设置`（共存态显示`本地语音`；用声音）／`Breeze 音色工坊`（造声音）。工坊造出的音色，在「Breeze 设置」里直接可选。
+- **三条代码通道**：朗读（`/local-runtime` 内部 RPC）／AI 设置（`/config` 等 8+ REST）／原有能力（`/speak`、`/rvc-*`、`/diagnose`、`/notify`，原样保留）。
+- **默认地址**：Breeze 服务 `http://127.0.0.1:8080`；插件接口前缀 `/dsh-breeze-tts-api` 挂在 DSH 宿主端口（默认 3104，但每实例可能不同——先确认，别想当然）。
+- **硬件**：绝大多数人走 C++ 版（`HoppouAI/Breeze-TTS-2.cpp`），NVIDIA/AMD/Intel/纯 CPU 都行，走 Vulkan（不用 CUDA/ROCm）；4 GB 显存够（Q8_0），3 GB 挤（Q4_K）；**硬门槛 CPU 要有 AVX2**（2013 年前老机器跑不了）。官方 PyTorch 版要 Linux+NVIDIA 12 GB 起，且没有 `/v1/voices`，插件音色下拉在它上面必空。
+- **模型下载必须连 `audio_tokenizer/` 目录一起下**，否则出不了声。
+- **音色名**只用 `[A-Za-z0-9_-]`（中文名 Breeze 服务返 400，插件改不了）；**音色数量以 `/voices` 返回数组为准**，不假设任何 id 存在。
+
+## 给 AI 的边界
+
+- **不是穿透工具**：跨机走真实局域网 IP；remoteAccess 只是门禁开关，不把远程伪装成本机。
+- **默认只本机**（`remoteAccess=false`）：非本机一律 403，这是**特性不是故障**。远程**写**接口要 Bearer token。
+- **穿透必开 `requireLocalToken=true`**：frp/ngrok/cloudflared 反代伪装 `127.0.0.1`，会绕过"本机"判定；VPN 类（Tailscale/ZeroTier）不伪装，不必开。
+- **`trustedLocalCidrs` 不是放行名单，是"视为本机名单"**：加 IP＝把对方当本机（免 token 且能拿到 token）。不擅自加。
+- **测完远程开关复位 `false/false` 并重启**，否则留安全口子或把所有客户端挡在 401 外。
+- **token 只住 `~/.dsh/dsh-breeze-tts/config.json`**：不写进会被提交/分享的文件；`GET /config` 在远程或穿透模式下不下发 token（故意的），本机直接读文件。
+- **配置局部 merge，禁止整包覆盖**：只写要改的子键，否则 autoRead/voice/rvc/notify 全丢。
+- **不替人判断音质**：程序只能证明"出了一段合法 wav"，好不好听只能人听。
+- **不挂公网**：Breeze 服务官方无鉴权、无限速。
+- **许可**：MIT；但运行时依赖的 **Breeze 模型权重是非商业许可**，分发/商用前读 `NOTICE.md`。
+- 本仓库只写可公开事实；**不含本机真实路径、内网地址、凭据、token 与内部协作细节**。
+- **口径真源**：功能与产品行为以 `README.md` / `README-AI.md` 为准；硬件以 `HARDWARE.md` §5 为准；实际行为以 `lib/` 真码为准；`site.json` 与本文件是索引与边界，不是真源。
+
+## 外部链接（别当成本仓库）
+
+- `README.md` 里的 `github.com/HoppouAI/Breeze-TTS-2.cpp` 是**推荐的服务端**（C++ 版）；
+- `github.com/breezeblue-ai/breeze-tts` 是**官方 PyTorch 版**（门槛高、音色下拉用不了）；
+- `breezeblue.ai` 是官方示例音色试听页（首页七个分类，没有单独音色库列表页）；
+- 这些都不是本插件仓库。本插件仓库地址以 `site.json` 的 `repository` 字段为准。
